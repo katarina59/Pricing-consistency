@@ -90,6 +90,21 @@ def test_correct_prices_fixes_deductible_order():
     # 200€ deductible should be cheaper than 100€
     assert corrected["casco_basic_200"] < corrected["casco_basic_100"]
 
+def test_correct_prices_preserves_valid():
+    """Correction should not change already valid prices"""
+    prices = {
+        "mtpl": 400,
+        "limited_casco_basic_100": 700,
+        "casco_basic_100": 900,
+    }
+    
+    # No issues in original
+    issues = validate_prices(prices)
+    assert len(issues) == 0
+    
+    # Correction should return same prices
+    corrected = correct_prices(prices)
+    assert corrected == prices
 
 def test_correct_prices_with_valid_data():
     """Correction should handle already valid prices"""
@@ -124,3 +139,32 @@ def test_correct_prices_with_example_data():
     # Should have fewer or no issues
     issues_after = validate_prices(corrected)
     assert len(issues_after) < len(issues_before)
+
+def test_correction_converges():
+    """Check that the correction does not enter an infinite loop"""
+    prices = {
+        "mtpl": 1000,  # Extremely bad prices
+        "limited_casco_basic_100": 100,
+        "casco_basic_100": 50,
+    }
+
+    # It should not throw an exception
+    corrected = correct_prices(prices)
+
+    # It should converge toward valid prices
+    issues = validate_prices(corrected)
+    assert len(issues) == 0
+
+def test_correct_prices_with_perfect_input():
+    """If the prices are already perfect, don’t change anything"""
+    prices = {
+        "mtpl": 400,
+        "limited_casco_basic_100": 700,
+        "casco_basic_100": 900,
+    }
+    
+    corrected = correct_prices(prices)
+    
+    # Prices should remain close to the original ones
+    for key in prices:
+        assert corrected[key] == pytest.approx(prices[key], rel=0.01)
