@@ -81,7 +81,7 @@ Higher deductibles mean lower premiums (customer assumes more risk).
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.12.7
 - pytest (for running tests)
 
 ### Setup
@@ -369,3 +369,4 @@ Internal use only - Ominimo Technical Assignment
 **Katarina**  
 Technical Assignment for Ominimo  
 Date: December 2024
+
