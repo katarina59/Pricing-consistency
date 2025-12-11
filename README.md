@@ -125,13 +125,13 @@ prices = {
     "mtpl": 400,
     "limited_casco_basic_100": 850,
     "limited_casco_basic_200": 780,
-    "casco_basic_100": 800,  # ❌ Violation: should be > Limited Casco
+    "casco_basic_100": 800,  # Violation: should be > Limited Casco
 }
 
 # Step 1: Validate
 issues = validate_prices(prices)
 if issues:
-    print("❌ Found pricing violations:")
+    print(" Found pricing violations:")
     for issue in issues:
         print(f"  • {issue}")
 
@@ -141,7 +141,7 @@ corrected = correct_prices(prices)
 # Step 3: Verify correction
 remaining_issues = validate_prices(corrected)
 if not remaining_issues:
-    print("✅ All violations fixed!")
+    print(" All violations fixed!")
 ```
 
 ### Example Output
@@ -187,15 +187,6 @@ pytest tests/test_parsing.py
 ```bash
 pytest -v
 ```
-
-### Check Test Coverage
-
-```bash
-pip install pytest-cov
-pytest --cov=pricing --cov-report=html
-```
-
-Then open `htmlcov/index.html` in your browser.
 
 ---
 
@@ -369,4 +360,5 @@ Internal use only - Ominimo Technical Assignment
 **Katarina**  
 Technical Assignment for Ominimo  
 Date: December 2024
+
 
