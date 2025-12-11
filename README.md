@@ -306,6 +306,7 @@ if issues:
 - **Aligned with spec:** Task explicitly says "using the following reference values"
 
 **Alternative considered:** Minimal adjustments to preserve original prices.
+
 **Decision:** Reference replacement chosen for simplicity and predictability.
 
 ### 5. Testing Strategy
@@ -360,5 +361,6 @@ Internal use only - Ominimo Technical Assignment
 **Katarina**  
 Technical Assignment for Ominimo  
 Date: December 2024
+
 
 
