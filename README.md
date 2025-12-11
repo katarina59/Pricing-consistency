@@ -493,10 +493,11 @@ This is a technical assignment submission for Ominimo.
 ## 👤 Author
 
 **Katarina Medić**  
-Technical Assignment - Python Developer Position  
+Python Technical Assignment
 December 2025
 
 
 ---
+
 
 
