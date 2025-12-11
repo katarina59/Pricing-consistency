@@ -261,6 +261,8 @@ The system uses these reference values for automatic correction:
 
 **Note:** Premium is calculated as Comfort + additional 7% (total +14% from base).
 
+**Note on Compact vs Basic:** Both variants use the same multiplier (1.0) in reference pricing, resulting in identical prices after correction. This is intentional - the specification states their relationship is not fixed. During validation, no ordering rule is enforced between Compact and Basic; they can be equal, or either can be higher than the other.
+
 ### Deductible Adjustments
 
 | Deductible | Discount | Multiplier |     Calculation       | Example (700€ base) |
@@ -436,7 +438,6 @@ if issues:
 **Test philosophy:** 
 - Both positive (valid inputs) and negative (violations) cases
 - Test **behavior**, not implementation details
-- Use `pytest.approx()` for floating-point comparisons
 - Clear, descriptive test names
 
 ### 6. Iteration Limit
