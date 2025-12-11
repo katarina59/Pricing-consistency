@@ -126,13 +126,13 @@ prices = {
     "mtpl": 400,
     "limited_casco_basic_100": 850,
     "limited_casco_basic_200": 780,
-    "casco_basic_100": 800,  # Violation: should be > Limited Casco
+    "casco_basic_100": 800,  
 }
 
 # Step 1: Validate
 issues = validate_prices(prices)
 if issues:
-    print("⚠️ Found pricing violations:")
+    print(" Found pricing violations:")
     for issue in issues:
         print(f"  • {issue}")
 
@@ -142,7 +142,7 @@ corrected = correct_prices(prices)
 # Step 3: Verify correction
 remaining_issues = validate_prices(corrected)
 if not remaining_issues:
-    print("✅ All violations fixed!")
+    print(" All violations fixed!")
 ```
 
 ### Example Output
@@ -151,7 +151,7 @@ Real output from running `python main.py`:
 
 ```
 1. Validating original prices...
-   ⚠️ Found 11 issue(s):
+    Found 11 issue(s):
    1. Limited Casco compact_100 (820) must be lower than Casco compact_100 (750)
    2. Limited Casco compact_200 (760) must be lower than Casco compact_200 (700)
    3. Limited Casco compact_500 (650) must be lower than Casco compact_500 (620)
@@ -167,7 +167,7 @@ Real output from running `python main.py`:
 2. Applying automatic corrections...
 
 3. Validating corrected prices...
-   ✅ All issues resolved!
+    All issues resolved!
 
 4. Price changes:
    limited_casco_compact_100: 820.00 → 700.00
@@ -496,4 +496,7 @@ This is a technical assignment submission for Ominimo.
 Technical Assignment - Python Developer Position  
 December 2025
 
+
 ---
+
+
