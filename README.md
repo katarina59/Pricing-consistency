@@ -494,10 +494,12 @@ This is a technical assignment submission for Ominimo.
 
 **Katarina Medić**  
 Python Technical Assignment
+
 December 2025
 
 
 ---
+
 
 
 
