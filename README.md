@@ -436,7 +436,6 @@ if issues:
 **Test philosophy:** 
 - Both positive (valid inputs) and negative (violations) cases
 - Test **behavior**, not implementation details
-- Use `pytest.approx()` for floating-point comparisons
 - Clear, descriptive test names
 
 ### 6. Iteration Limit
@@ -497,3 +496,4 @@ December 2025
 
 
 ---
+
