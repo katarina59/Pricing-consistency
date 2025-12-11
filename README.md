@@ -337,7 +337,7 @@ Potential improvements (not implemented to maintain simplicity):
 
 - [ ] Configuration file for reference prices (YAML/JSON)
 - [ ] Multiple correction strategies (conservative vs. aggressive)
-- [ ] Price history tracking and audit trail
+- [ ] Price history tracking
 - [ ] Support for additional products (Travel, Home insurance)
 - [ ] API endpoint for validation/correction
 - [ ] Database integration for persistent pricing
@@ -361,6 +361,7 @@ Internal use only - Ominimo Technical Assignment
 **Katarina**  
 Technical Assignment for Ominimo  
 Date: December 2024
+
 
 
 
