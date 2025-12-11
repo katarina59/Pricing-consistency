@@ -4,25 +4,16 @@ from pricing.correction import correct_prices
 
 
 def analyze_and_fix_prices(prices: Dict[str, float]) -> Dict[str, float]:
-    """
-    Main function that validates and corrects insurance pricing.
-    
-    Args:
-        prices: Dictionary of insurance prices
-        
-    Returns:
-        Corrected prices dictionary
-    """
-    
+
     print("\n1. Validating original prices...")
     issues = validate_prices(prices)
     
     if issues:
-        print(f"\n   Found {len(issues)} issue(s):")
+        print(f"\n Found {len(issues)} issue(s):")
         for i, issue in enumerate(issues, 1):
             print(f"   {i}. {issue}")
     else:
-        print("   No issues found - pricing is valid!")
+        print(" No issues found - pricing is valid!")
         return prices
     
     print("\n2. Applying automatic corrections...")
@@ -36,7 +27,7 @@ def analyze_and_fix_prices(prices: Dict[str, float]) -> Dict[str, float]:
         for i, issue in enumerate(remaining_issues, 1):
             print(f"   {i}. {issue}")
     else:
-        print("   All issues resolved!")
+        print(" All issues resolved!")
     
     print("\n4. Price changes:")
     changes_made = False
@@ -46,9 +37,8 @@ def analyze_and_fix_prices(prices: Dict[str, float]) -> Dict[str, float]:
             print(f"   {key}: {prices[key]:.2f} → {corrected_prices[key]:.2f}")
     
     if not changes_made:
-        print("   No changes needed")
+        print(" No changes needed")
     
-    print("\n" + "=" * 60)
     
     return corrected_prices
 

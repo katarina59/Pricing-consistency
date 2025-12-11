@@ -2,21 +2,7 @@ from typing import Optional, Tuple, Dict
 
 
 def parse_price_key(key: str) -> Tuple[str, Optional[str], Optional[int]]:
-    """
-    Parse a pricing key into its components: product, variant, deductible.
-    
-    Examples:
-        "mtpl" -> ("mtpl", None, None)
-        "limited_casco_comfort_200" -> ("limited_casco", "comfort", 200)
-        "casco_premium_100" -> ("casco", "premium", 100)
-    
-    Args:
-        key: Price key string
-        
-    Returns:
-        Tuple of (product, variant, deductible)
-    """
- 
+
     if key == "mtpl":
         return "mtpl", None, None
     

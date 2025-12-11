@@ -5,7 +5,6 @@ REFERENCE_PRICES = {
 }
 
 VARIANT_ORDER = ["compact", "basic", "comfort", "premium"]
-
 DEDUCTIBLE_ORDER = [100, 200, 500]
 
 VARIANT_STEP_PERCENT = 0.07

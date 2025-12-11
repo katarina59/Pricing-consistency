@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from pricing.parsing import parse_price_key, build_structured
+from pricing.validation import validate_prices
 from pricing.rules import (
     REFERENCE_PRICES,
     VARIANT_STEP_PERCENT,
@@ -14,20 +15,7 @@ def calculate_reference_price(
     variant: Optional[str],
     deductible: Optional[int]
 ) -> float:
-    """
-    Calculate reference price based on product, variant, and deductible.
     
-    Formula:
-        base_price × variant_multiplier × deductible_multiplier
-    
-    Args:
-        product: Product type (mtpl, limited_casco, casco)
-        variant: Variant type (None for mtpl, or compact/basic/comfort/premium)
-        deductible: Deductible amount (None for mtpl, or 100/200/500)
-        
-    Returns:
-        Calculated reference price in euros
-    """
     base_price = REFERENCE_PRICES.get(product, 700)
     
     if variant is None or deductible is None:
@@ -57,21 +45,7 @@ def calculate_reference_price(
 
 
 def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
-    """
-    Automatically correct pricing inconsistencies using reference values.
-    
-    Strategy:
-    When a validation rule is violated, replace ALL involved prices
-    with their reference values to ensure consistency.
-    
-    Args:
-        prices: Original prices dictionary
-        
-    Returns:
-        Corrected prices dictionary
-    """
-    from pricing.validation import validate_prices
-    
+   
     corrected = prices.copy()
     max_iterations = 10
     
@@ -85,7 +59,6 @@ def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
         structured = build_structured(corrected)
         keys_to_correct = set()
         
-        # RULE 1: Product level - MTPL < Limited Casco < Casco
         
         mtpl_price = structured.get("mtpl", {}).get(None, {}).get(None)
         
@@ -112,7 +85,6 @@ def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
                             keys_to_correct.add(f"casco_{variant}_{deductible}")
         
 
-        # RULE 2: Variant ordering
         
         for product in ["limited_casco", "casco"]:
             if product not in structured:
@@ -143,7 +115,6 @@ def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
                         keys_to_correct.add(f"{product}_premium_{deductible}")
         
   
-        # RULE 3: Deductible ordering
         
         for product in ["limited_casco", "casco"]:
             if product not in structured:
@@ -169,8 +140,7 @@ def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
                         keys_to_correct.add(f"{product}_{variant}_200")
                         keys_to_correct.add(f"{product}_{variant}_500")
         
-        
-        # Apply corrections - replace with reference values
+
         
         if not keys_to_correct:
             break
