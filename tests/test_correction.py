@@ -1,34 +1,6 @@
 import pytest
-from pricing.correction import calculate_reference_price, correct_prices
+from pricing.correction import correct_prices
 from pricing.validation import validate_prices
-
-
-def test_calculate_reference_mtpl():
-    price = calculate_reference_price("mtpl", None, None)
-    assert price == 400
-
-
-def test_calculate_reference_limited_casco_basic():
-    price = calculate_reference_price("limited_casco", "basic", 100)
-    assert price == 700
-
-
-def test_calculate_reference_with_variant():
-    price = calculate_reference_price("limited_casco", "comfort", 100)
-    assert price == pytest.approx(749, rel=0.01)
-    
-    price = calculate_reference_price("limited_casco", "premium", 100)
-    assert price == pytest.approx(798, rel=0.01)
-
-
-def test_calculate_reference_with_deductible():
-    base = calculate_reference_price("casco", "basic", 100)  
-    with_200 = calculate_reference_price("casco", "basic", 200)  
-    with_500 = calculate_reference_price("casco", "basic", 500)  
-    
-    assert base == 900
-    assert with_200 == pytest.approx(810, rel=0.01)
-    assert with_500 == pytest.approx(720, rel=0.01)
 
 
 def test_correct_prices_fixes_casco_too_low():

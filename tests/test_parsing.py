@@ -1,7 +1,6 @@
 import pytest
 from pricing.parsing import parse_price_key
 
-
 def test_parse_mtpl():
     product, variant, deductible = parse_price_key("mtpl")
     assert product == "mtpl"

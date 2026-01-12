@@ -38,8 +38,11 @@ def analyze_and_fix_prices(prices: Dict[str, float]) -> Dict[str, float]:
     
     if not changes_made:
         print(" No changes needed")
-    
-    
+
+    print("\n5. Final corrected prices:")
+    for key, value in corrected_prices.items():
+        print(f"   {key}: {value:.2f}")
+
     return corrected_prices
 
 

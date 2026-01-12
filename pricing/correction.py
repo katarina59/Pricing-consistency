@@ -1,153 +1,142 @@
-from typing import Dict, Optional
-from pricing.parsing import parse_price_key, build_structured
-from pricing.validation import validate_prices
+from typing import Dict
 from pricing.rules import (
-    REFERENCE_PRICES,
-    VARIANT_STEP_PERCENT,
-    DEDUCTIBLE_STEP_PERCENT,
     VARIANT_ORDER,
     DEDUCTIBLE_ORDER,
+    VARIANT_STEP_PERCENT,
+    MTPL_TO_LIMITED_CASCO_MARGIN,
+    LIMITED_CASCO_TO_CASCO_MARGIN,
 )
 
 
-def calculate_reference_price(
-    product: str,
-    variant: Optional[str],
-    deductible: Optional[int]
-) -> float:
-    
-    base_price = REFERENCE_PRICES.get(product, 700)
-    
-    if variant is None or deductible is None:
-        return base_price
-
-
-    if variant in ["compact", "basic"]:
-        variant_multiplier = 1.0
-    elif variant == "comfort":
-        variant_multiplier = 1.0 + VARIANT_STEP_PERCENT
-    elif variant == "premium":
-        variant_multiplier = 1.0 + 2 * VARIANT_STEP_PERCENT
-    else:
-        variant_multiplier = 1.0
-    
-
-    if deductible == 100:
-        deductible_multiplier = 1.0
-    elif deductible == 200:
-        deductible_multiplier = 1.0 - DEDUCTIBLE_STEP_PERCENT
-    elif deductible == 500:
-        deductible_multiplier = 1.0 - 2 * DEDUCTIBLE_STEP_PERCENT
-    else:
-        deductible_multiplier = 1.0
-    
-    return base_price * variant_multiplier * deductible_multiplier
-
-
+# Corrects pricing violations by ensuring all hierarchy rules and ordering constraints are satisfied
+# Applies corrections in sequence: MTPL < Limited Casco < Casco, then enforces deductible (100 > 200 > 500) and variant (Compact/Basic < Comfort < Premium) ordering
 def correct_prices(prices: Dict[str, float]) -> Dict[str, float]:
-   
+
     corrected = prices.copy()
-    max_iterations = 10
-    
-    for _ in range(max_iterations):
-       
-        issues = validate_prices(corrected)
-        
-        if not issues:
-            break
-       
-        structured = build_structured(corrected)
-        keys_to_correct = set()
-        
-        
-        mtpl_price = structured.get("mtpl", {}).get(None, {}).get(None)
-        
-        if mtpl_price is not None and "limited_casco" in structured:
-            for variant in structured["limited_casco"]:
-                for deductible, lc_price in structured["limited_casco"][variant].items():
-                    if mtpl_price >= lc_price:
-                        keys_to_correct.add("mtpl")
-                        keys_to_correct.add(f"limited_casco_{variant}_{deductible}")
-        
 
-        if "limited_casco" in structured and "casco" in structured:
-            for variant in VARIANT_ORDER:
-                if variant not in structured["limited_casco"] or variant not in structured["casco"]:
-                    continue
-                
-                for deductible in DEDUCTIBLE_ORDER:
-                    lc_price = structured["limited_casco"][variant].get(deductible)
-                    casco_price = structured["casco"][variant].get(deductible)
-                    
-                    if lc_price is not None and casco_price is not None:
-                        if lc_price >= casco_price:
-                            keys_to_correct.add(f"limited_casco_{variant}_{deductible}")
-                            keys_to_correct.add(f"casco_{variant}_{deductible}")
-        
-
-        
-        for product in ["limited_casco", "casco"]:
-            if product not in structured:
-                continue
-            
+    # Step 1: Correct Limited Casco
+    # First ensure all Limited Casco prices are > MTPL
+    mtpl_price = corrected.get("mtpl")
+    if mtpl_price is not None:
+        for variant in VARIANT_ORDER:
             for deductible in DEDUCTIBLE_ORDER:
-                compact = structured[product].get("compact", {}).get(deductible)
-                basic = structured[product].get("basic", {}).get(deductible)
-                comfort = structured[product].get("comfort", {}).get(deductible)
-                premium = structured[product].get("premium", {}).get(deductible)
-                
-                
-                if compact is not None and comfort is not None:
-                    if compact >= comfort:
-                        keys_to_correct.add(f"{product}_compact_{deductible}")
-                        keys_to_correct.add(f"{product}_comfort_{deductible}")
-                
-                
-                if basic is not None and comfort is not None:
-                    if basic >= comfort:
-                        keys_to_correct.add(f"{product}_basic_{deductible}")
-                        keys_to_correct.add(f"{product}_comfort_{deductible}")
-                
-                
-                if comfort is not None and premium is not None:
-                    if comfort >= premium:
-                        keys_to_correct.add(f"{product}_comfort_{deductible}")
-                        keys_to_correct.add(f"{product}_premium_{deductible}")
-        
-  
-        
-        for product in ["limited_casco", "casco"]:
-            if product not in structured:
-                continue
-            
-            for variant in VARIANT_ORDER:
-                if variant not in structured[product]:
-                    continue
-                
-                p100 = structured[product][variant].get(100)
-                p200 = structured[product][variant].get(200)
-                p500 = structured[product][variant].get(500)
-                
-               
-                if p100 is not None and p200 is not None:
-                    if p100 <= p200:
-                        keys_to_correct.add(f"{product}_{variant}_100")
-                        keys_to_correct.add(f"{product}_{variant}_200")
-                
-                
-                if p200 is not None and p500 is not None:
-                    if p200 <= p500:
-                        keys_to_correct.add(f"{product}_{variant}_200")
-                        keys_to_correct.add(f"{product}_{variant}_500")
-        
+                key = f"limited_casco_{variant}_{deductible}"
+                if key in corrected and corrected[key] <= mtpl_price:
+                    corrected[key] = mtpl_price * (1 + MTPL_TO_LIMITED_CASCO_MARGIN)
 
-        
-        if not keys_to_correct:
-            break
-        
-        for key in keys_to_correct:
-            product, variant, deductible = parse_price_key(key)
-            corrected[key] = calculate_reference_price(product, variant, deductible)
-    
+    # Correct Limited Casco deductible ordering (100 > 200 > 500)
+    for variant in VARIANT_ORDER:
+        for _ in range(3): 
+            changed = False
+            p100_key = f"limited_casco_{variant}_100"
+            p200_key = f"limited_casco_{variant}_200"
+            p500_key = f"limited_casco_{variant}_500"
+
+            p100 = corrected.get(p100_key)
+            p200 = corrected.get(p200_key)
+            p500 = corrected.get(p500_key)
+
+            # Enforce 100 > 200
+            if p100 is not None and p200 is not None:
+                if p100 <= p200:
+                    corrected[p100_key] = p200 * 1.10
+                    changed = True
+
+            # Enforce 200 > 500
+            if p200 is not None and p500 is not None:
+                if p200 <= p500:
+                    corrected[p200_key] = p500 * 1.10
+                    changed = True
+
+            if not changed:
+                break
+
+    # Correct Limited Casco variant ordering (Compact/Basic < Comfort < Premium)
+    for deductible in DEDUCTIBLE_ORDER:
+        compact_key = f"limited_casco_compact_{deductible}"
+        basic_key = f"limited_casco_basic_{deductible}"
+        comfort_key = f"limited_casco_comfort_{deductible}"
+        premium_key = f"limited_casco_premium_{deductible}"
+
+        compact = corrected.get(compact_key)
+        basic = corrected.get(basic_key)
+        comfort = corrected.get(comfort_key)
+        premium = corrected.get(premium_key)
+
+        baseline = compact if compact is not None else basic
+
+        # Enforce Comfort > baseline
+        if comfort is not None and baseline is not None:
+            if comfort <= baseline:
+                corrected[comfort_key] = baseline * (1 + VARIANT_STEP_PERCENT)
+
+        # Enforce Premium > Comfort
+        if premium is not None and comfort is not None:
+            comfort = corrected[comfort_key]  # Re-read in case it was updated
+            if premium <= comfort:
+                corrected[premium_key] = comfort * (1 + VARIANT_STEP_PERCENT)
+
+    # Step 2: Correct Casco
+    # First ensure all Casco prices are > Limited Casco (for same variant/deductible)
+    for variant in VARIANT_ORDER:
+        for deductible in DEDUCTIBLE_ORDER:
+            lc_key = f"limited_casco_{variant}_{deductible}"
+            c_key = f"casco_{variant}_{deductible}"
+
+            if lc_key in corrected and c_key in corrected:
+                if corrected[c_key] <= corrected[lc_key]:
+                    corrected[c_key] = corrected[lc_key] * (1 + LIMITED_CASCO_TO_CASCO_MARGIN)
+
+    # Correct Casco deductible ordering (100 > 200 > 500)
+    for variant in VARIANT_ORDER:
+        for _ in range(3):  
+            changed = False
+            p100_key = f"casco_{variant}_100"
+            p200_key = f"casco_{variant}_200"
+            p500_key = f"casco_{variant}_500"
+
+            p100 = corrected.get(p100_key)
+            p200 = corrected.get(p200_key)
+            p500 = corrected.get(p500_key)
+
+            # Enforce 100 > 200
+            if p100 is not None and p200 is not None:
+                if p100 <= p200:
+                    corrected[p100_key] = p200 * 1.10
+                    changed = True
+
+            # Enforce 200 > 500
+            if p200 is not None and p500 is not None:
+                if p200 <= p500:
+                    corrected[p200_key] = p500 * 1.10
+                    changed = True
+
+            if not changed:
+                break
+
+    # Correct Casco variant ordering (Compact/Basic < Comfort < Premium)
+    for deductible in DEDUCTIBLE_ORDER:
+        compact_key = f"casco_compact_{deductible}"
+        basic_key = f"casco_basic_{deductible}"
+        comfort_key = f"casco_comfort_{deductible}"
+        premium_key = f"casco_premium_{deductible}"
+
+        compact = corrected.get(compact_key)
+        basic = corrected.get(basic_key)
+        comfort = corrected.get(comfort_key)
+        premium = corrected.get(premium_key)
+
+        baseline = compact if compact is not None else basic
+
+        # Enforce Comfort > baseline
+        if comfort is not None and baseline is not None:
+            if comfort <= baseline:
+                corrected[comfort_key] = baseline * (1 + VARIANT_STEP_PERCENT)
+
+        # Enforce Premium > Comfort
+        if premium is not None and comfort is not None:
+            comfort = corrected[comfort_key]  # Re-read in case it was updated
+            if premium <= comfort:
+                corrected[premium_key] = comfort * (1 + VARIANT_STEP_PERCENT)
+
     return corrected
-
